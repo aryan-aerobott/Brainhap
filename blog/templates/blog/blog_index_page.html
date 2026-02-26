@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% load wagtailcore_tags %}
+
+{% block content %}
+<h1>{{ page.title }}</h1>
+
+<ul>
+{% for post in page.get_children.live.specific %}
+  <li>
+    <a href="{{ post.url }}">{{ post.title }}</a>
+
+    {% if post.categories.exists %}
+      <small>
+        (
+        {% for cat in post.categories.all %}
+          {{ cat.name }}{% if not forloop.last %}, {% endif %}
+        {% endfor %}
+        )
+      </small>
+    {% endif %}
+  </li>
+{% empty %}
+  <li>No blog posts yet.</li>
+{% endfor %}
+</ul>
+
+{% endblock %}

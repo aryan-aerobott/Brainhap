@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% load wagtailcore_tags %}
+{% load wagtailimages_tags %}
+
+{% block content %}
+<article class="blog-post">
+
+  <h1>{{ page.title }}</h1>
+
+  {% if page.date %}
+    <p><strong>Date:</strong> {{ page.date }}</p>
+  {% endif %}
+
+  {% if page.categories.all %}
+    <p>
+      <strong>Categories:</strong>
+      {% for cat in page.categories.all %}
+        {{ cat.name }}{% if not forloop.last %}, {% endif %}
+      {% endfor %}
+    </p>
+  {% endif %}
+
+  {% if page.feed_image %}
+    <div class="blog-image">
+      {% image page.feed_image fill-800x400 %}
+    </div>
+  {% endif %}
+
+  {% if page.intro %}
+    <p class="blog-intro">{{ page.intro }}</p>
+  {% endif %}
+
+  <div class="blog-body">
+    {{ page.body|richtext }}
+  </div>
+
+</article>
+{% endblock %}
