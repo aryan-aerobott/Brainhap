@@ -8,6 +8,7 @@ from wagtail.snippets.models import register_snippet
 from wagtail.api import APIField
 from wagtail.images.api.fields import ImageRenditionField
 
+from django.core.paginator import Paginator
 from modelcluster.fields import ParentalManyToManyField
 
 
@@ -35,11 +36,18 @@ class BlogCategory(models.Model):
 class BlogIndexPage(Page):
     subpage_types = ["blog.BlogPage"]
 
-    # max_count = 1   # optional but recommended
-
     def get_context(self, request):
         context = super().get_context(request)
-        context["blogs"] = BlogPage.objects.live().public()
+
+        # Only show blogs under THIS index page
+        blogs = BlogPage.objects.child_of(self).live().public().order_by("-first_published_at")
+
+        # Pagination
+        paginator = Paginator(blogs, 6)
+        page = request.GET.get("page")
+        blogs = paginator.get_page(page)
+
+        context["blogs"] = blogs
         return context
 
 
@@ -47,22 +55,29 @@ class BlogIndexPage(Page):
 # Blog Page
 # ---------------------------
 class BlogPage(Page):
+
     date = models.DateField("Post date", null=True, blank=True)
-    intro = models.CharField(max_length=250, null=True, blank=True)
+
+    intro = models.CharField(
+        max_length=250,
+        null=True,
+        blank=True
+    )
+
     body = RichTextField(blank=True)
-    
+
     feed_image = models.ForeignKey(
-        'wagtailimages.Image',
+        "wagtailimages.Image",
         null=True,
         blank=True,
         on_delete=models.SET_NULL,
-        related_name='+'
+        related_name="+"
     )
 
     categories = ParentalManyToManyField(
         "blog.BlogCategory",
         blank=True,
-        related_name="blog_pages",
+        related_name="blog_pages"
     )
 
     def author(self):
@@ -74,19 +89,18 @@ class BlogPage(Page):
         return expand_db_html(self.body)
 
     content_panels = Page.content_panels + [
-        FieldPanel('date'),
+        FieldPanel("date"),
         FieldPanel("intro"),
         FieldPanel("body"),
         FieldPanel("feed_image"),
         FieldPanel("categories"),
     ]
-    
+
     api_fields = [
-        APIField('date'),
-        APIField('intro'),
-        APIField('body', serializer=serializers.CharField(source='rendered_body')),
-        APIField('feed_image', serializer=ImageRenditionField('original')),
-        # APIField('blog_image', serializer=ImageRenditionField('original', source='feed_image')),
-        APIField('author'),
-        APIField('categories'),
+        APIField("date"),
+        APIField("intro"),
+        APIField("body", serializer=serializers.CharField(source="rendered_body")),
+        APIField("feed_image", serializer=ImageRenditionField("original")),
+        APIField("author"),
+        APIField("categories"),
     ]

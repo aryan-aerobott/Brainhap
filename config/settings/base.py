@@ -90,9 +90,9 @@ WSGI_APPLICATION = "config.wsgi.application"
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'Brainhap',
-        'USER': 'editing',
-        'PASSWORD': '',
+        'NAME': 'aerobott_db',
+        'USER': 'aerobott',
+        'PASSWORD': 'aerobott123',
         'HOST': 'localhost',
         'PORT': '5432',
     }
